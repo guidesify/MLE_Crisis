@@ -10,29 +10,27 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix, classification_report
 from utils import load_data, save_model
 import joblib
+import tarfile
 import json
+import boto3
 
-# Create a RandomizedSearchCV function to find the best parameters/hyperparameters tuning
-def RandomizedSearchCV_function(classifier, parameters, X_train=None, y_train=None):
-    start_time = time.time()
-    # Define column transformer and pipeline
-    column_transformer = ColumnTransformer([
-        ('vect', TfidfVectorizer(analyzer='word',strip_accents=None, encoding='utf-8',preprocessor=None,ngram_range=(1, 2),token_pattern=r'(?u)\b\w[\w-]*\w\b|\b\w+\b', stop_words='english'), 'text')
-    ], remainder='drop')
-    pipeline = Pipeline([
-        ('col_transformer', column_transformer),
-        ('clf', classifier)
-    ])
-
-    # Create a randomized search cross validation and no verbose
-    search_cv = HalvingRandomSearchCV(pipeline, parameters, scoring='f1', n_jobs=-1, cv=5, verbose=0, random_state=2023) 
-    best_model = search_cv.fit(X_train, y_train)
-    print('Best Score: {}: {}'.format(classifier.__class__.__name__, best_model.best_score_))
-    print('Best Parameters: {}'.format(best_model.best_params_))
+def get_latest_folder(bucket_name, prefix):
+    s3 = boto3.client('s3')
     
-    print('Time taken: {:.2f} seconds'.format(time.time() - start_time))
-    print('='*50)
-    return best_model.best_estimator_
+    # List objects in the bucket with the specified prefix
+    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix, Delimiter='/')
+    
+    # Extract the folders from the response
+    folders = [folder['Prefix'] for folder in response.get('CommonPrefixes', [])]
+    
+    # Sort the folders by name in descending order
+    sorted_folders = sorted(folders, reverse=True)
+    
+    if sorted_folders:
+        return sorted_folders[0]
+    else:
+        return None
+
 
 def main():
     # Parse command-line arguments
@@ -41,35 +39,49 @@ def main():
     parser.add_argument('--model-dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
     parser.add_argument("--train", type=str, default=os.environ.get("SM_CHANNEL_TRAIN"))
 
+    bucket_name = 'crisis-detection-bucket'
+    prefix = 'model/'
     args, _ = parser.parse_known_args()
     model_dir = args.model_dir
     sm_model_dir = args.sm_model_dir
     training_dir = args.train
     train_data = glob.glob(os.path.join(training_dir, "*.csv"))[0]
+    old_model_dir = get_latest_folder(bucket_name, prefix)
+    
     print(train_data)
+    print(old_model_dir)
 
+    # Extract the model file from the tar.gz archive
+    s3 = boto3.client('s3')
+    local_file_path = 'model.tar.gz'
+    s3.download_file(bucket_name, old_model_dir+'output/'+local_file_path, local_file_path)
+    with tarfile.open(local_file_path, 'r:gz') as tar:
+        tar.extractall('.')
+        
+    # Load the trained model
+    model = joblib.load('model.joblib')
+    
     # Load training data
     df = load_data(train_data)
     X = df.drop(['id', 'target', 'keyword','location'], axis=1, errors='ignore')
     y = df['target']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=2023, stratify=y)
-
-    # Train and find the best model
-    best_model = RandomizedSearchCV_function(SGDClassifier(loss='log_loss'), 
-     {
-    'clf__alpha': (0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1),
-    'clf__penalty': ('l1', 'l2'),
-    'clf__max_iter': (100, 200, 300, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500)
-     }
-     , X_train=X_train, y_train=y_train)
-
-    # Evaluate the best model on the training data
-    y_pred = best_model.predict(X_test)
-    f1 = f1_score(y_test, y_pred, average='binary')
-    print('F1 Score: {:.4f}'.format(f1))
+    
+    # Check model predictive score on new data first
+    y_pred = model.predict(X)
+    f1 = f1_score(y, y_pred, average='binary')
+    print('F1 Score Before Partial Fit: {:.4f}'.format(f1))
+    
+    # Partial fit the new data
+    X_train = model.named_steps['col_transformer'].transform(X)
+    model.named_steps['clf'].partial_fit(X_train, y)
+    
+    # Evaluate the new model on the new data again
+    y_pred = model.predict(X)
+    f1 = f1_score(y, y_pred, average='binary')
+    print('F1 Score After Partial Fit on New Data: {:.4f}'.format(f1))
 
     # Save the best model
-    save_model(best_model, sm_model_dir)
+    save_model(model, sm_model_dir)
 
 if __name__ == '__main__':
     main()
