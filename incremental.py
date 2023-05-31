@@ -23,14 +23,21 @@ def get_latest_folder(bucket_name, prefix):
     # Extract the folders from the response
     folders = [folder['Prefix'] for folder in response.get('CommonPrefixes', [])]
     
-    # Sort the folders by name in descending order
-    sorted_folders = sorted(folders, reverse=True)
-    
+    qualified_folders = []
+
+    for folder in folders:
+        output_folder = folder + 'output/'
+        response = s3.list_objects_v2(Bucket=bucket_name, Prefix=output_folder)
+
+        if 'Contents' in response:
+            qualified_folders.append(folder)
+            
+    sorted_folders = sorted(qualified_folders, reverse=True)
+
     if sorted_folders:
         return sorted_folders[0]
     else:
         return None
-
 
 def main():
     # Parse command-line arguments
