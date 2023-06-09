@@ -24,7 +24,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
   try {
     const response = await sagemaker.listEndpoints(listEndpointsParams).promise();
-    console.log(response.Endpoints)
+    console.log(response.Endpoints.length);
     return json(response.Endpoints);
   } catch (error) {
     console.error('Error retrieving SageMaker endpoints:', error);
