@@ -29,7 +29,7 @@
 	</nav>
 
 	<div class="corner">
-		<a href="https://github.com/sveltejs/kit">
+		<a href="https://github.com/guidesify/MLE_Crisis" target="_blank">
 			<img src={github} alt="GitHub" />
 		</a>
 	</div>
