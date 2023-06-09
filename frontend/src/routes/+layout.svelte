@@ -1,10 +1,11 @@
 <script>
 	import "../app.css";
-	import "flowbite/dist/flowbite.css";
+    import "flowbite/dist/flowbite.css";
 	import Header from './Header.svelte';
+	import './styles.css';
 </script>
 
-<div class="">
+<div class="app">
 	<Header />
 
 		<slot />
@@ -15,6 +16,12 @@
 </div>
 
 <style>
+	.app {
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+	}
+
 
 	footer {
 		display: flex;
