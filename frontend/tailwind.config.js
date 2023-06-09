@@ -1,8 +1,7 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./src/**/*.{html,js,svelte,ts}",
-    "./node_modules/flowbite-svelte/**/*.{html,js,svelte,ts}",
+    './src/**/*.{html,js,svelte,ts}',
   ],
   theme: {
     extend: {},
@@ -10,6 +9,5 @@ export default {
   plugins: [
      require('flowbite/plugin')
   ],
-  darkMode: 'class',
+  darkMode: 'class'
 }
-
