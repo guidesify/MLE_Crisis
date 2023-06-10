@@ -1,6 +1,6 @@
 import boto3
 import pandas as pd
-from init_proj import init_proj
+from init_proj import init_proj, train_model
 
 # import sagemaker
 
@@ -21,20 +21,21 @@ def lambda_handler(event, context):
     # Upload the file to S3
     s3.put_object(Body=preprocessed_data_csv, Bucket=bucket_name, Key=file_name)
 
-    # sagemaker_session = boto3.client('sagemaker')
+    # sagemaker_session = sagemaker.Session()
+    sagemaker_session = boto3.client('sagemaker')
     print('1')
     session = boto3.Session()
     sts_client = session.client('sts')
     response = sts_client.get_caller_identity()
     print('2)')
     role_arn = response['Arn']
-    sagemaker_session = session.client('sagemaker', role_arn=role_arn)
+    sagemaker_session = session.client('sagemaker')
     print('3')
-    role = sagemaker_session.get_execution_role()
-    base_model = train_model('train.py', ['utils.py'], 's3://crisis-detection-bucket-1/base.csv', role, sagemaker_session, bucket_name)
+    # role = sagemaker_session.get_execution_role()
+    base_model = train_model('train.py', ['utils.py'], 's3://crisis-detection-bucket-1/base.csv', role_arn, sagemaker_session, bucket_name)
     print('4')
 
     return {
         'statusCode': 200,
-        'body': 'Preprocessed data stored in S3'
+        'body': str(response) # 'Preprocessed data stored in S3'
     }
