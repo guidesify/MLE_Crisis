@@ -1,4 +1,5 @@
 <script>
+  import { supabase } from "$lib/supabaseClient";
   import { onMount } from 'svelte'
   import Spinner from '$lib/components/Spinner.svelte';
   let endpoints = [];
@@ -34,7 +35,7 @@ onMount(async () => {
     await getEndpoints();
   });
 
-console.log(endpoints.length)
+console.log(supabase)
 
 </script>
 
