@@ -7,8 +7,10 @@ import uuid
 import tarfile
 import os
 
+# CHANGE THE BUCKET NAME
+# CHANGE THE ROLE TOO BELOW IN THE get_execution_role() FUNCTION
 def lambda_handler(event, context):
-    bucket = 'crisis-detection-2'
+    bucket = 'crisis-detection-2' # CHANGE THIS
         
     # TODO implement
     step = "error"
@@ -71,7 +73,7 @@ def get_execution_role():
     response = iam_client.list_roles()
     roles = response['Roles']
     for role in roles:
-        if 'crisis-detection' in role['RoleName']:
+        if 'Crisis_Detection' in role['RoleName']: # CHANGE THIS
             return role['Arn']
 
 
