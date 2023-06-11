@@ -4,6 +4,8 @@ import boto3
 import io
 import time
 import uuid
+import tarfile
+import os
 
 def lambda_handler(event, context):
     bucket = 'crisis-detection-2'
@@ -51,9 +53,16 @@ def create_and_upload(bucket):
     s3.put_object(Body=csv_content, Bucket=bucket, Key=file)
     
     # Upload code to S3
-    s3.put_object(Body='train.py', Bucket=bucket, Key='code/train.py')
-    s3.put_object(Body='utils.py', Bucket=bucket, Key='code/utils.py')
+    tar_filename = '/tmp/sourcedir.tar.gz'
+    with tarfile.open(tar_filename, 'w:gz') as tar:
+        tar.add('train.py')
+        tar.add('utils.py')
     
+    with open(tar_filename, 'rb') as file2:
+        tar_content = file2.read()
+    
+    s3.put_object(Body=tar_content, Bucket=bucket, Key='code/{}'.format(os.path.basename(tar_filename)))
+
     return file
 
 
@@ -103,7 +112,13 @@ def train_model(bucket, role, file):
             'VolumeSizeInGB': 30 
         },
         'TrainingJobName': job_name,
-        'HyperParameters': {},
+        'HyperParameters': {
+            'sagemaker_container_log_level': '20',
+            'sagemaker_job_name': job_name,
+            'sagemaker_program': 'train.py',
+            'sagemaker_region': 'us-east-1',
+            'sagemaker_submit_directory': 's3://{}/code/sourcedir.tar.gz'.format(bucket),
+        },
         'StoppingCondition': {
             'MaxRuntimeInSeconds': 86400
         },
@@ -120,35 +135,8 @@ def train_model(bucket, role, file):
                 'ContentType': 'text/csv',
                 'CompressionType': 'None',
                 'RecordWrapperType': 'None'
-            },
-            {
-                'ChannelName': 'code',
-                'DataSource': {
-                    'S3DataSource': {
-                        'S3DataType': 'S3Prefix',
-                        'S3Uri': 's3://{}/code/train.py'.format(bucket),
-                        'S3DataDistributionType': 'FullyReplicated'
-                    }
-                },
-                'ContentType': 'text/x-python',
-                'CompressionType': 'None',
-                'RecordWrapperType': 'None'
-            },
-            {
-                'ChannelName': 'dependencies',
-                'DataSource': {
-                    'S3DataSource': {
-                        'S3DataType': 'S3Prefix',
-                        'S3Uri': 's3://{}/code/utils.py'.format(bucket),
-                        'S3DataDistributionType': 'FullyReplicated'
-                    }
-                },
-                'ContentType': 'text/x-python',
-                'CompressionType': 'None',
-                'RecordWrapperType': 'None'
             }
-        ],
-        'VpcConfig': get_vpc_config('us-east-1')
+        ]
     }
     
     # Create the SageMaker training job
@@ -158,26 +146,3 @@ def train_model(bucket, role, file):
         return str(e)
     
     return "Training job created successfully."
-
-def get_vpc_config(region):
-    ec2_client = boto3.client('ec2', region_name=region)
-    vpcs = ec2_client.describe_vpcs()
-    subnets = ec2_client.describe_subnets()
-    security_groups = ec2_client.describe_security_groups()
-    
-    vpc_config = {
-        'SecurityGroupIds': [],
-        'Subnets': []
-    }
-    
-    # Retrieve the security group IDs
-    for sg in security_groups['SecurityGroups']:
-        vpc_config['SecurityGroupIds'].append(sg['GroupId'])
-    
-    # Retrieve the subnet IDs
-    for subnet in subnets['Subnets']:
-        vpc_config['Subnets'].append(subnet['SubnetId'])
-    
-    return vpc_config
-
-
