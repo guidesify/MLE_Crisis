@@ -32,6 +32,11 @@ def lambda_handler(event, context):
             "Image": container,
             "Mode": "SingleModel",
             "ModelDataUrl": 's3://{}/{}'.format(bucket,model_url),
+            "Environment": {
+                "SAGEMAKER_PROGRAM": "train.py",
+                "SAGEMAKER_REGION": region,
+                "SAGEMAKER_SUBMIT_DIRECTORY": 's3://{}/code/sourcedir.tar.gz'.format(bucket)
+            }
         }]
     )
     
