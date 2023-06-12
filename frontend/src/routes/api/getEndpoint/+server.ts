@@ -24,7 +24,7 @@ export const POST = async ({ request }) => {
   try {
     const response = await sagemaker.listEndpoints(listEndpointsParams);
     // console.log(response.Endpoints.length);
-    return json(AWS_KEY);
+    return json(response.Endpoints);
   } catch (error) {
     console.error('Error retrieving SageMaker endpoints:', error);
     throw error;
