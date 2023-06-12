@@ -7,7 +7,7 @@ import { json } from '@sveltejs/kit'
 
 export const POST: RequestHandler = async ({ request }) => {
   let {endpoint} = await request.json();
-  console.log(endpoint)
+  // console.log(endpoint)
   const credentials = new AWS.Credentials({
     accessKeyId: AWS_KEY,
     secretAccessKey: AWS_SECRET,
@@ -25,7 +25,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
   try {
     const response = await sagemaker.listEndpoints(listEndpointsParams);
-    console.log(response.Endpoints.length);
+    // console.log(response.Endpoints.length);
     return json(response.Endpoints);
   } catch (error) {
     console.error('Error retrieving SageMaker endpoints:', error);

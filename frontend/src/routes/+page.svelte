@@ -1,9 +1,13 @@
-<script>
+<script lang="ts">
   import { supabase } from "$lib/supabaseClient";
+  import type { AuthSession } from '@supabase/supabase-js'
+  import {sessionStore} from '$lib/stores'
   import { onMount } from 'svelte'
   import Spinner from '$lib/components/Spinner.svelte';
+  import Login from '$lib/components/Login.svelte';
   let endpoints = [];
   let loading = false;
+  export let session: AuthSession | null = null
 
   async function getEndpoints() {
 	loading = true;
@@ -31,11 +35,27 @@
 	});
 }
 
+const logout = async () => {
+      await supabase.auth.signOut()
+      window.location.href = '/';
+    }
+
 onMount(async () => {
     await getEndpoints();
+	const res = await supabase.auth.getSession()
+    if (res) {
+      session = res.data.session
+      sessionStore.set(session)
+    }
+
+    supabase.auth.onAuthStateChange((_event, _session) => {
+      session = _session
+      sessionStore.set(session)
+    })
+
   });
 
-console.log(supabase)
+// console.log(supabase)
 
 </script>
 
@@ -44,14 +64,16 @@ console.log(supabase)
 	<meta name="description" content="Machine Learning Engineering - Crisis Dectection Demo" />
 </svelte:head>
 
-<div class="flex flex-col items-center justify-center p-8 mt-8">
+
+<div class="flex flex-col items-center justify-center p-8 mx-auto mt-8">
 	<p class="text-2xl font-bold">Machine Learning Engineering - Crisis Dectection Demo</p>
 </div>
 
+{#if session}
 <!-- Make a flowbite table for endpoint -->
-<div class="flex flex-col items-center justify-center py-8 px-32 mt-8">
+<div class="flex flex-col items-center justify-center py-8 mx-auto mt-8 w-full sm:w-3/4 sm:max-w-2xl">
 	<!-- make a mini reload svg align on the right that calls getEndpoints-->
-	<div class="flex justify-end ml-auto">
+	<div class="flex justify-end ml-auto pb-4">
 		{#if loading}
 			<Spinner />
 		{:else}
@@ -67,13 +89,13 @@ console.log(supabase)
 	<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
 		<thead>
 			<tr>
-				<th class="px-4 py-2">Endpoint</th>
-				<th class="px-4 py-2">Status</th>
+				<th class="border-gray-300 border px-4 py-2">Endpoint</th>
+				<th class="border-gray-300 border px-4 py-2">Status</th>
 			</tr>
 		</thead>
 		<tbody>
 			{#if loading}
-				<tr>
+				<tr class="border-gray-300 border">
 					<td class="px-4 py-2 flex items-center justify-end" colspan="2">
 					<Spinner />
 					</td>
@@ -82,14 +104,14 @@ console.log(supabase)
 				{#if endpoints.length > 0}
 					{#each endpoints as endpoint}
 					<tr>
-						<td class="border px-4 py-2">{endpoint}</td>
-						<td class="border px-4 py-2">Active</td>
+						<td class="border-gray-300 border px-4 py-2">{endpoint["EndpointName"]}</td>
+						<td class="border-gray-300 border px-4 py-2">{endpoint["EndpointStatus"]}</td>
 					</tr>
 					{/each}
 				{:else}
 				<tr>
-					<td class="px-4 py-2 text-center">No endpoints deployed currently</td>
-					<td class="px-4 py-2 text-center">
+					<td class="border-gray-300 border px-4 py-2 text-center">No endpoints deployed currently</td>
+					<td class="border-gray-300 border px-4 py-2 text-center">
 						<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
 							Train Base Model
 						</button>
@@ -99,4 +121,14 @@ console.log(supabase)
 			{/if}
 		</tbody>
 	</table>
+
+	<!-- Log out button -->
+	<div class="flex justify-center mt-8">
+		<button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded" on:click={logout}>
+			Log Out
+		</button>
+	</div>
 </div>
+{:else}
+<Login />
+{/if}

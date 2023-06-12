@@ -1,6 +1,16 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import autoImport from 'sveltekit-autoimport';
+import inject from '@rollup/plugin-inject'
 
-export default defineConfig({
-	plugins: [sveltekit()]
-});
+/** @type {import('vite').UserConfig} */
+const config = {
+	plugins: [
+		autoImport({
+			components: ['./src/components'],
+		  }),
+		sveltekit(),
+		inject({ Buffer: ['buffer', 'Buffer'] })
+	],
+};
+
+export default config;

@@ -26,10 +26,13 @@
 	"dependencies": {
 		"@aws-sdk/client-sagemaker": "^3.350.0",
 		"@popperjs/core": "^2.11.8",
+		"@rollup/plugin-inject": "^5.0.3",
 		"@supabase/supabase-js": "^2.24.0",
+		"@sveltejs/adapter-cloudflare": "^2.3.0",
 		"aws-sdk": "^2.1394.0",
 		"classnames": "^2.3.2",
 		"flowbite": "^1.6.5",
-		"flowbite-svelte": "^0.37.4"
+		"flowbite-svelte": "^0.37.4",
+		"sveltekit-autoimport": "^1.7.0"
 	}
 }
