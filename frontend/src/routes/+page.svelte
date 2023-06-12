@@ -5,6 +5,7 @@
   import { onMount } from 'svelte'
   import Spinner from '$lib/components/Spinner.svelte';
   import Login from '$lib/components/Login.svelte';
+  import logo from '$lib/images/Main Logo.svg';
   let endpoints = [];
   let loading = false;
   export let session: AuthSession | null = null
@@ -66,6 +67,9 @@ onMount(async () => {
 <svelte:head>
 	<title>Machine Learning Engineering - Crisis Dectection Demo</title>
 	<meta name="description" content="Machine Learning Engineering - Crisis Dectection Demo" />
+	<meta property="og:title" content="Machine Learning Engineering - Crisis Dectection Demo" />
+	<meta property="og:description" content="Machine Learning Engineering - Crisis Dectection Demo" />
+	<meta property="og:image" content={logo} />
 </svelte:head>
 
 

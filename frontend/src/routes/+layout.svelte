@@ -1,9 +1,28 @@
+<script context="module">
+	export async function load({ page }) {
+	  const { host } = page.request.headers;
+	  return {
+		props: {
+		  currentUrl: `https://${host}${page.path}`,
+		},
+	  };
+	}
+  </script>
+
 <script>
 	import "../app.css";
     import "flowbite/dist/flowbite.css";
 	import Header from './Header.svelte';
 	import './styles.css';
+
+	export let currentUrl;
 </script>
+
+<svelte:head>
+	<meta prefix="og: http://ogp.me/ns#" />
+	<meta property="og:url" content="{currentUrl}" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</svelte:head>
 
 <div class="app">
 	<Header />
