@@ -4,8 +4,8 @@ import { AWS_KEY, AWS_SECRET } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-export const POST = (async ({ request }) => {
-  let { endpoint } = await request.json();
+export const GET = (async ({}) => {
+  // let { endpoint } = await request.json();
   // console.log(endpoint)
   const credentials = new AWS.Credentials({
     accessKeyId: AWS_KEY,

@@ -13,16 +13,18 @@
 	loading = true;
 
 	const response = await fetch('/api/getEndpoint', {
-	method: 'POST',
+	method: 'GET',
 	headers: {
 		'Content-Type': 'application/json',
-		'Accept': '*/*'
+		'Accept': '*/*',
+		'Access-Control-Allow-Origin': '*',
+		'Access-Control-Allow-Methods': 'GET, POST',
 	},
-	body: JSON.stringify(
-		{
-			"endpoint": "test is successful"
-		}
-	)
+	// body: JSON.stringify(
+	// 	{
+	// 		"endpoint": "test is successful"
+	// 	}
+	// )
 	})
 	.then(response => response.json())
 	.then(data => {
