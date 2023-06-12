@@ -1,6 +1,6 @@
 // import AWS from 'aws-sdk';
 // import { SageMaker } from "@aws-sdk/client-sagemaker";
-// import { AWS_KEY, AWS_SECRET } from '$env/static/private';
+import { AWS_KEY, AWS_SECRET } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -30,5 +30,5 @@ export const GET = (async ({}) => {
   //   console.error('Error retrieving SageMaker endpoints:', error);
   //   throw error;
   // }
-  return json([{ EndpointName: 'test', EndpointStatus: 'test' }]);
+  return json([{ EndpointName: AWS_KEY, EndpointStatus: 'test' }]);
 }) satisfies RequestHandler;
