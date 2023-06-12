@@ -28,7 +28,7 @@
           setTimeout(() => {
             [loading, success, failure] = [false, false, false]
           }, dur)
-        }, 10000)
+        }, 5000)
       }
     }
   </script>

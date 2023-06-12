@@ -1,14 +1,14 @@
 <script lang="ts">
     export let red = false;
     export let class_ = [
-        "flex p-4 mb-4 text-green-700 bg-green-100 border-t-4 border-green-500 dark:bg-gray-800 dark:text-green-400",
+        "fixed top-0 left-0 min-w-full flex p-4 mb-4 text-green-700 bg-green-100 border-t-4 border-green-500 dark:bg-gray-800 dark:text-green-400",
         "ml-auto -mx-1.5 -my-1.5 bg-green-100 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex h-8 w-8 dark:bg-gray-800 dark:text-green-400 dark:hover:bg-gray-700"
     ]
     export let id_ = "alert";
 
     if (red) {
         class_ = [
-            "flex p-4 mb-4 text-red-700 bg-red-100 border-t-4 border-red-500 dark:text-red-400 dark:bg-gray-800",
+            "fixed top-0 left-0 min-w-full flex p-4 mb-4 text-red-700 bg-red-100 border-t-4 border-red-500 dark:text-red-400 dark:bg-gray-800",
             "ml-auto -mx-1.5 -my-1.5 bg-red-100 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex h-8 w-8 dark:bg-gray-800 dark:text-red-300 dark:hover:bg-gray-700"
         ]
         id_ = "alert2";
