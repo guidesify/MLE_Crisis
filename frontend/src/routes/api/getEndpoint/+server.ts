@@ -1,4 +1,4 @@
-// import AWS from 'aws-sdk';
+import AWS from 'aws-sdk';
 // import { SageMaker } from "@aws-sdk/client-sagemaker";
 import { AWS_KEY, AWS_SECRET } from '$env/static/private';
 import { json } from '@sveltejs/kit';
@@ -7,10 +7,10 @@ import type { RequestHandler } from './$types';
 export const GET = (async ({}) => {
   // let { endpoint } = await request.json();
   // console.log(endpoint)
-  // const credentials = new AWS.Credentials({
-  //   accessKeyId: AWS_KEY,
-  //   secretAccessKey: AWS_SECRET,
-  // });
+  const credentials = new AWS.Credentials({
+    accessKeyId: AWS_KEY,
+    secretAccessKey: AWS_SECRET,
+  });
 
   // const region = 'us-east-1'; // Replace with your actual AWS region
 
@@ -30,5 +30,5 @@ export const GET = (async ({}) => {
   //   console.error('Error retrieving SageMaker endpoints:', error);
   //   throw error;
   // }
-  return json([{ EndpointName: AWS_KEY, EndpointStatus: 'test' }]);
+  return json([{ EndpointName: 'test', EndpointStatus: 'test' }]);
 }) satisfies RequestHandler;
