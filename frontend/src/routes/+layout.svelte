@@ -12,7 +12,7 @@
 <script>
 	import "../app.css";
     import "flowbite/dist/flowbite.css";
-	import Header from './Header.svelte';
+	import Header from '$lib/components/Header.svelte';
 	import './styles.css';
 
 	export let currentUrl;

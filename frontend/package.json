@@ -24,6 +24,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@aws-sdk/client-lambda": "^3.350.0",
 		"@aws-sdk/client-sagemaker": "^3.350.0",
 		"@popperjs/core": "^2.11.8",
 		"@rollup/plugin-inject": "^5.0.3",
