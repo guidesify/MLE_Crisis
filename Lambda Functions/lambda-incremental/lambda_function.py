@@ -53,7 +53,7 @@ def create_and_upload(bucket):
     with open(tar_filename, 'rb') as file2:
         tar_content = file2.read()
 
-    s3.put_object(Body=tar_content, Bucket=bucket, Key='code/{}'.format(os.path.basename(tar_filename)))
+    s3.put_object(Body=tar_content, Bucket=bucket, Key='code_incremental/{}'.format(os.path.basename(tar_filename)))
 
     return file
 
@@ -113,9 +113,6 @@ def incremental_train(bucket, role, file):
                 'RecordWrapperType': 'None'
             }
         ],
-        'OutputDataConfig': {
-            'S3OutputPath': 's3://{}/{}/output'.format(bucket, prefix)
-        },
     }
 
     try:
