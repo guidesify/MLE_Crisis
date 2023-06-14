@@ -41,7 +41,7 @@
 async function getActiveEndpoint() {
 	// Get the newest active endpoint
 	const res = await supabase.from('model').select('endpoint').order('id', {ascending: false}).limit(1)
-	console.log(res)
+	// console.log(res)
 	if (res.status < 300) {
 		return res.data[0].endpoint
 	} else {

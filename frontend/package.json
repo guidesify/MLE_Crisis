@@ -26,14 +26,19 @@
 	"dependencies": {
 		"@aws-sdk/client-lambda": "^3.350.0",
 		"@aws-sdk/client-sagemaker": "^3.350.0",
+		"@aws-sdk/client-sagemaker-runtime": "^3.352.0",
 		"@popperjs/core": "^2.11.8",
 		"@rollup/plugin-inject": "^5.0.3",
 		"@supabase/supabase-js": "^2.24.0",
 		"@sveltejs/adapter-cloudflare": "^2.3.0",
 		"aws-sdk": "^2.1394.0",
+		"chart.js": "^3.9.1",
+		"chartjs-adapter-moment": "^1.0.1",
+		"chartjs-plugin-zoom": "^2.0.1",
 		"classnames": "^2.3.2",
 		"flowbite": "^1.6.5",
 		"flowbite-svelte": "^0.37.4",
+		"moment": "^2.29.4",
 		"sveltekit-autoimport": "^1.7.0"
 	}
 }

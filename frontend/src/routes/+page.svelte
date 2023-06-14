@@ -1,5 +1,6 @@
 <script lang="ts">
   import Admin from './admin/+page.svelte'
+  import Chart from '$lib/components/Chart.svelte'
   import logo from '$lib/images/Main Logo.svg';
 </script>
 
@@ -15,4 +16,7 @@
 	<p class="text-2xl font-bold">Machine Learning Engineering - Crisis Dectection Demo</p>
 </div>
 
+<Chart />
 <Admin />
+<div class=pb-16></div>
+```
