@@ -6,6 +6,7 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request }) => {
   try {
     let { endpoint, tweets } = await request.json();
+
     const region = 'us-east-1'; // Replace with your actual AWS region
 
     // Make a request to SageMaker for predictions
