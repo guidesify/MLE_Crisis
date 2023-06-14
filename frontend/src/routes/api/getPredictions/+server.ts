@@ -37,7 +37,7 @@ export const POST: RequestHandler = async ({ request }) => {
         return json(predictionData);
     } catch (error) {
         console.error("Error making inference request:", error);
-        throw error;
+        return json(error)
     }
     };
   
