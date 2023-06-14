@@ -17,7 +17,7 @@
 
     async function fetchJSONData() {
       try {
-        const response = await fetch('src/lib/data/tweets.json');
+        const response = await fetch('/data/tweets.json');
         const data = await response.text();
         return data;
       } catch (error) {
