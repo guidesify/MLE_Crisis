@@ -1,4 +1,4 @@
-import { SageMakerRuntimeClient, InvokeEndpointCommand } from "@aws-sdk/client-sagemaker-runtime";
+import { SageMakerRuntime, InvokeEndpointCommand } from "@aws-sdk/client-sagemaker-runtime";
 import { AWS_KEY, AWS_SECRET } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
@@ -8,7 +8,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const region = 'us-east-1'; // Replace with your actual AWS region
   
     // Make a request to SageMaker for predictions
-    const sagemaker = new SageMakerRuntimeClient({
+    const sagemaker = new SageMakerRuntime({
         region,
         credentials: {
           accessKeyId: AWS_KEY,
