@@ -5,6 +5,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
+  try {
     let { endpoint, tweets } = await request.json();
     const region = 'us-east-1'; // Replace with your actual AWS region
   
@@ -15,7 +16,6 @@ export const POST: RequestHandler = async ({ request }) => {
           secretAccessKey: AWS_SECRET,
         },
       });
-
 
     // Pass credentials from sagemaker to runtime
     const runtime = new SageMakerRuntimeClient({
@@ -30,7 +30,6 @@ export const POST: RequestHandler = async ({ request }) => {
         ContentType: "application/json",
     };
 
-    try {
         // Make the inference request
         const command = new InvokeEndpointCommand(params);
         const response = await runtime.send(command);
@@ -44,6 +43,6 @@ export const POST: RequestHandler = async ({ request }) => {
         return json(predictionData);
     } catch (error) {
         console.error("Error making inference request:", error);
-        throw error;
+        return json(error);
     }
     };
