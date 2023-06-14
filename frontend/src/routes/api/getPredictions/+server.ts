@@ -34,7 +34,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
         // Render the page template with the predictions
         console.log("Number of Predictions:", predictionData.Output.length);
-        return json(predictionData);
+        return json([AWS_KEY, endpoint, sagemaker]);
     } catch (error) {
         console.error("Error making inference request:", error);
         throw error;
