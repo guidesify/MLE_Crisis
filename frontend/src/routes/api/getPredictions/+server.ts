@@ -1,6 +1,7 @@
-import { AWS_KEY, AWS_SECRET } from '$env/static/private';
-import AWS from 'aws-sdk';
 import { json } from '@sveltejs/kit';
+import { AWS_KEY, AWS_SECRET } from '$env/static/private';
+import aws4 from 'aws4';
+import fetch from 'node-fetch';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -9,29 +10,34 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const region = 'us-east-1'; // Replace with your actual AWS region
 
-    // Set up the AWS credentials
-    AWS.config.update({
-      accessKeyId: AWS_KEY,
-      secretAccessKey: AWS_SECRET,
-      region: region
-    });
-
-    // Create a SageMaker runtime instance
-    const sagemaker = new AWS.SageMakerRuntime();
-
     // Construct the request parameters
     const params = {
-      EndpointName: endpoint,
-      Body: JSON.stringify({ Input: tweets }),
-      ContentType: "application/json",
+      host: `runtime.sagemaker.${region}.amazonaws.com`,
+      path: `/endpoints/${endpoint}/invocations`,
+      service: 'sagemaker',
+      region: region,
+      body: JSON.stringify({ Input: tweets }),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     };
 
-    // Make the inference request
-    const response = await sagemaker.invokeEndpoint(params).promise();
+    // Sign the request using aws4
+    const signedRequest = aws4.sign(params, {
+      accessKeyId: AWS_KEY,
+      secretAccessKey: AWS_SECRET,
+    });
+
+    // Make the inference request using node-fetch
+    const response = await fetch(`https://${params.host}${params.path}`, {
+      method: signedRequest.method,
+      headers: signedRequest.headers,
+      body: signedRequest.body,
+    });
 
     // Parse the predictions from the response
-    const { Body } = response;
-    const predictionData = JSON.parse(Buffer.from(Body as ArrayBuffer).toString());
+    const predictionData = await response.json();
 
     // Render the page template with the predictions
     console.log("Number of Predictions:", predictionData.Output.length);
