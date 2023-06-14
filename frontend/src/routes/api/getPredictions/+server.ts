@@ -19,11 +19,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // Generate the AWS signature
     const date = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
-    const canonicalRequest = `${request.method}\n${request.path}\n\nhost:${request.host}\nx-amz-date:${date}\n\nhost;x-amz-date\n${CryptoJS.SHA256(JSON.stringify(params)).toString(CryptoJS.enc.Hex)}`;
+    const canonicalRequest = `POST\n/endpoints/${endpoint}/invocations\n\nhost:runtime.sagemaker.${region}.amazonaws.com\nx-amz-date:${date}\n\nhost;x-amz-date\n${CryptoJS.SHA256(params.Body).toString(CryptoJS.enc.Hex)}`;
     const stringToSign = `AWS4-HMAC-SHA256\n${date}\n${date.substr(0, 8)}/${region}/sagemaker/aws4_request\n${CryptoJS.SHA256(canonicalRequest).toString(CryptoJS.enc.Hex)}`;
-    const signingKey = CryptoJS.HmacSHA256(date.substr(0, 8), CryptoJS.HmacSHA256(region, CryptoJS.HmacSHA256('sagemaker', CryptoJS.HmacSHA256('aws4_request', `AWS4${AWS_SECRET}`))));
+    const signingKey = CryptoJS.HmacSHA256(`AWS4${AWS_SECRET}`, date.substr(0, 8));
     const signature = CryptoJS.HmacSHA256(stringToSign, signingKey).toString(CryptoJS.enc.Hex);
-    const authorizationHeader = `AWS4-HMAC-SHA256 Credential=${AWS_KEY}/${date.substr(0, 8)}/${region}/sagemaker/aws4_request, SignedHeaders=host;x-amz-date, Signature=${signature}`;
+    const credential = `${AWS_KEY}/${date.substr(0, 8)}/${region}/sagemaker/aws4_request`;
+    const authorizationHeader = `AWS4-HMAC-SHA256 Credential=${credential}, SignedHeaders=host;x-amz-date, Signature=${signature}`;
 
     // Make the inference request
     const url = `https://runtime.sagemaker.${region}.amazonaws.com/endpoints/${endpoint}/invocations`;
