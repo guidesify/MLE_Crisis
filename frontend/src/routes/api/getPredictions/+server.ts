@@ -1,48 +1,37 @@
-import axios from 'axios';
-import CryptoJS from 'crypto-js';
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import { AWS_KEY, AWS_SECRET } from "$env/static/private";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
 
-import { AWS_KEY, AWS_SECRET } from '$env/static/private';
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+export const POST: RequestHandler = async ({request }) => {
+  const { endpoint, tweets } = await request.json();
+  console.log(endpoint)
+  const region = "us-east-1"; // Replace with your actual AWS region
 
-export const POST: RequestHandler = async ({ request }) => {
+  const lambdaClient = new LambdaClient({
+    region,
+    credentials: {
+        accessKeyId: AWS_KEY,
+        secretAccessKey: AWS_SECRET,
+      },
+  });
+  const invokeParams = {
+    FunctionName: "get-predictions",
+    Payload: JSON.stringify({ body: { endpoint, tweets } }),
+  };
+
   try {
-    let { endpoint, tweets } = await request.json();
-    const region = 'us-east-1'; // Replace with your actual AWS region
-  
-    // Construct the request parameters
-    const params = {
-      EndpointName: endpoint,
-      Body: JSON.stringify({ Input: tweets }),
-      ContentType: 'application/json',
-    };
+    const response = await lambdaClient.send(new InvokeCommand(invokeParams));
+    const responseData = JSON.parse(
+      new TextDecoder().decode(response.Payload)
+    );
 
-    // Generate the AWS signature
-    const date = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
-    const canonicalRequest = `POST\n/endpoints/${endpoint}/invocations\n\nhost:runtime.sagemaker.${region}.amazonaws.com\nx-amz-date:${date}\n\nhost;x-amz-date\n${CryptoJS.SHA256(params.Body).toString(CryptoJS.enc.Hex)}`;
-    const stringToSign = `AWS4-HMAC-SHA256\n${date}\n${date.substr(0, 8)}/${region}/sagemaker/aws4_request\n${CryptoJS.SHA256(canonicalRequest).toString(CryptoJS.enc.Hex)}`;
-    const signingKey = CryptoJS.HmacSHA256(`AWS4${AWS_SECRET}`, date.substr(0, 8));
-    const signature = CryptoJS.HmacSHA256(stringToSign, signingKey).toString(CryptoJS.enc.Hex);
-    const credential = `${AWS_KEY}/${date.substr(0, 8)}/${region}/sagemaker/aws4_request`;
-    const authorizationHeader = `AWS4-HMAC-SHA256 Credential=${credential}, SignedHeaders=host;x-amz-date, Signature=${signature}`;
-
-    // Make the inference request
-    const url = `https://runtime.sagemaker.${region}.amazonaws.com/endpoints/${endpoint}/invocations`;
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-Amz-Date': date,
-      'Authorization': authorizationHeader,
-    };
-    const response = await axios.post(url, params.Body, { headers });
-
-    // Parse the predictions from the response
-    const predictionData = JSON.parse(response.data);
-
-    // Render the page template with the predictions
-    console.log('Number of Predictions:', predictionData.Output.length);
+    // Get the body only and parse it as JSON
+    const predictionData = JSON.parse(responseData.body);
+    console.log("Number of Predictions:", predictionData.Output.length);
     return json(predictionData);
   } catch (error) {
-    console.error('Error making inference request:', error);
+    console.log(error);
     return json(error);
   }
-};
+}
