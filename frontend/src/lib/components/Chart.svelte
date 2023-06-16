@@ -12,7 +12,7 @@
     let timeInterval = 'hour'; // Default time interval is set to 'hour'
     let chartInstance = null;
     let canvasElement = null;
-    let loading;
+    let loading = true;
     let threshold = 70;
     export let toLabelArray = [];
 
@@ -169,6 +169,30 @@
         return filteredData;
     }
 
+    async function ChartInit() {
+        let success = false;
+        let attempts = 0
+
+        while (!success && attempts < 5) {
+            attempts++;
+            try {
+                if (typeof window !== 'undefined') {
+                    import('chartjs-plugin-zoom').then((zoomPlugin) => {
+                    Chart.register(zoomPlugin.default);
+                    createChart();
+                    });
+                } else {
+                    createChart();
+                }
+                success = true;
+            } catch (error) {
+                console.error('Error:', error);
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
+        }
+
+    }
+
     async function initLoad() {
         loading = true;
         const data = await fetchJSONData();
@@ -192,17 +216,10 @@
 
         // console.log('Combined Array with Predictions:', combinedArray);
         toLabelArray = getUncertainTweets();
-        console.log('Uncertain Tweets:', toLabelArray);
+        // console.log('Uncertain Tweets:', toLabelArray);
 
         // Check if the code is running in the browser
-        if (typeof window !== 'undefined') {
-            import('chartjs-plugin-zoom').then((zoomPlugin) => {
-            Chart.register(zoomPlugin.default);
-            createChart();
-            });
-        } else {
-            createChart();
-        }
+        await ChartInit();
         loading = false;
     }
 
@@ -210,8 +227,8 @@
         initLoad();
     });
 
-    afterUpdate(() => {
-        createChart(); // Recreate the chart after updating the component
+    afterUpdate(async () => {
+        await ChartInit(); // Recreate the chart after updating the component
     });
 
     // Change canvasElementClass depending on whether combinedArray is empty or not
