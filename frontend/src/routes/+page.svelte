@@ -1,7 +1,9 @@
 <script lang="ts">
-  import Admin from './admin/+page.svelte'
   import Chart from '$lib/components/Chart.svelte'
+  import LabelWork from '$lib/components/LabelWork.svelte'
   import logo from '$lib/images/Main Logo.svg';
+  let toLabelArray = [];
+
 </script>
 
 <svelte:head>
@@ -16,7 +18,6 @@
 	<p class="text-2xl font-bold">Machine Learning Engineering - Crisis Dectection Demo</p>
 </div>
 
-<Chart />
-<Admin />
+<Chart bind:toLabelArray={toLabelArray} />
+<LabelWork bind:toLabelArray={toLabelArray} />
 <div class=pb-16></div>
-```

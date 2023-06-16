@@ -6,7 +6,6 @@
     import Chart from 'chart.js/auto';
     import 'chartjs-adapter-moment';
     import moment from 'moment';
-  import { init } from 'svelte/internal';
 
     let combinedArray = [];
     let output = { Output: [], Probabilities: [[]] };
@@ -14,6 +13,8 @@
     let chartInstance = null;
     let canvasElement = null;
     let loading;
+    let threshold = 70;
+    export let toLabelArray = [];
 
     async function fetchJSONData() {
       try {
@@ -55,13 +56,16 @@
     function createChart() {
         const ctx = canvasElement.getContext('2d');
         const filteredData = combinedArray.filter((item) => item.prediction === 1);
+        const filteredDataPriority = combinedArray.filter((item) => item.prediction === 1 && item.probabilities[1] > threshold/100);
 
         // Extract timestamps and convert them to Moment.js objects
         const timestamps = filteredData.map((item) => moment(item.date));
+        const timestampsPriority = filteredDataPriority.map((item) => moment(item.date));
 
         // Prepare labels and data for the chart
         const labels = timestamps.map((timestamp) => timestamp.format('lll')); // Format the timestamp using Moment.js
         const data = calculateSumByInterval(timestamps, timeInterval); // Calculate the sum of predictions by the selected interval
+        const dataPriority = calculateSumByInterval(timestampsPriority, timeInterval); // Calculate the sum of predictions by the selected interval
 
         // Create the chart
         if (chartInstance) {
@@ -78,6 +82,12 @@
                 borderColor: 'rgb(75, 192, 192)',
                 tension: 0.1,
                 },
+                {
+                    label: 'Priority Tweets',
+                    data: dataPriority,
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1,
+                }
             ],
             },
             options: {
@@ -153,6 +163,12 @@
         return data;
     }
 
+    function getUncertainTweets() {
+        // Filter combinedArray to only include tweets with probability 1st or 2nd item between 0.4 and 0.6
+        const filteredData = combinedArray.filter((item) => item.probabilities[1] > 0.50 && item.probabilities[1] < 0.51);
+        return filteredData;
+    }
+
     async function initLoad() {
         loading = true;
         const data = await fetchJSONData();
@@ -174,7 +190,10 @@
         }
         }
 
-        console.log('Combined Array with Predictions:', combinedArray);
+        // console.log('Combined Array with Predictions:', combinedArray);
+        toLabelArray = getUncertainTweets();
+        console.log('Uncertain Tweets:', toLabelArray);
+
         // Check if the code is running in the browser
         if (typeof window !== 'undefined') {
             import('chartjs-plugin-zoom').then((zoomPlugin) => {
@@ -203,5 +222,10 @@
         <Spinner /> Fetching predictions...
     </div>
 {:else}
-    <canvas bind:this={canvasElement} class="items-center justify-center mx-auto w-full sm:w-3/4 sm:max-w-6xl"></canvas>
+<!-- Make a slider for threshold between 0.7-0.9 -->
+<div class="flex flex-col items-end mx-auto w-full sm:w-3/4 sm:max-w-6xl">
+    <input type="range" min="70" max="90" step="1" bind:value={threshold} />
+    <span class="text-sm text-gray-500">Threshold: {threshold}%</span>
+</div>
+<canvas bind:this={canvasElement} class="items-center justify-center mx-auto w-full sm:w-3/4 sm:max-w-6xl"></canvas>
 {/if}
