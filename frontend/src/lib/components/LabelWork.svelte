@@ -1,15 +1,15 @@
-<script>
+<script lang="ts">
     import moment from 'moment';
     import { supabase } from "$lib/supabaseClient";
-    // import { get } from 'svelte/store';
-    // import { sessionStore } from '$lib/stores';
+    import type { AuthSession } from '@supabase/supabase-js'
     import { onMount } from 'svelte';
     import Spinner from '$lib/components/Spinner.svelte';
+    import { construct_svelte_component } from 'svelte/internal';
     export let toLabelArray = [];
-    // export let session = get(sessionStore);
     let workArray = [];
     let cleanedToLabelArray = [];
     let loading
+    export let session: AuthSession | null = null
 
     async function alreadyLabelled() {
         workArray = await supabase.from('labelled').select()
@@ -41,25 +41,36 @@
         const res = await supabase
           .from('labelled')
           .upsert([{ id: tweetID, label: label, text: text, submitted: false }])
-          console.log("Response from upsert: ", res)
+          // console.log("Response from upsert: ", res)
+        await groupFunction();
         loading = false;
     }
 
+    async function groupFunction() {
+        await alreadyLabelled();
+        await cleanToLabelArray();
+    }
+
     onMount(async () => {
-        alreadyLabelled();
-        cleanToLabelArray();
+        const res = await supabase.auth.getSession();
+        if (res) {
+            session = res.data.session;
+        }
+
+        await groupFunction();
+
+        console.log(cleanedToLabelArray)
     })
 
     $: {
         console.log("Arrays have changed:", toLabelArray)
-        alreadyLabelled();
-        cleanToLabelArray();
+        groupFunction();
     }
 
 </script>
 
 <!-- Table to show toLabelArray -->
-{#if cleanedToLabelArray.length > 0}
+{#if cleanedToLabelArray.length > 0 && session}
 <div class="flex flex-col items-center justify-center py-8 mx-auto mt-8 w-full sm:w-3/4 sm:max-w-4xl">
 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
   <thead>

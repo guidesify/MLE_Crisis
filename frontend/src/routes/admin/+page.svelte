@@ -37,8 +37,6 @@
 </div>
 {/if}
 
-
-
 {#if session}
 <Tab />
 {:else}
