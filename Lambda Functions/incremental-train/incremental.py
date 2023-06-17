@@ -38,10 +38,14 @@ def get_latest_folder(bucket, prefix):
             
     sorted_folders = sorted(qualified_folders, reverse=True)
 
-    if sorted_folders:
+    try:
+        print('Chosen Folder:', sorted_folders[0])
         return sorted_folders[0]
-    else:
-        return None
+    except:
+        if prefix == 'model/':
+            return None
+        else:
+            return get_latest_folder(bucket, 'model/')
 
 def main():
     # Parse command-line arguments
@@ -50,8 +54,8 @@ def main():
     parser.add_argument('--model-dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
     parser.add_argument("--train", type=str, default=os.environ.get("SM_CHANNEL_TRAIN"))
 
-    bucket = 'crisis-detection-bucket-ronel'
-    prefix = 'model/'
+    bucket = 'crisis-detection'
+    prefix = 'model_incremental/'
     args, _ = parser.parse_known_args()
     model_dir = args.model_dir
     sm_model_dir = args.sm_model_dir

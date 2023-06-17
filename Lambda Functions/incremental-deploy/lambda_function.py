@@ -33,7 +33,7 @@ def lambda_handler(event, context):
             "Mode": "SingleModel",
             "ModelDataUrl": 's3://{}/{}'.format(bucket,model_url),
             "Environment": {
-                "SAGEMAKER_PROGRAM": "train.py",
+                "SAGEMAKER_PROGRAM": "incremental.py",
                 "SAGEMAKER_REGION": region,
                 "SAGEMAKER_SUBMIT_DIRECTORY": 's3://{}/code_incremental/sourcedir.tar.gz'.format(bucket)
             }
@@ -50,7 +50,7 @@ def lambda_handler(event, context):
             "VariantName": "AllTraffic",
             "ServerlessConfig": {
                 "MemorySizeInMB": 1024,
-                "MaxConcurrency": 10,
+                "MaxConcurrency": 1,
             }
         } 
         ]
@@ -71,5 +71,5 @@ def get_execution_role():
     response = iam_client.list_roles()
     roles = response['Roles']
     for role in roles:
-        if 'LabRole' in role['RoleName']: # CHANGE THIS
+        if 'Crisis_Detection' in role['RoleName']: # CHANGE THIS
             return role['Arn']

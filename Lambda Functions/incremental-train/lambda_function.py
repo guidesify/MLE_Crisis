@@ -17,13 +17,13 @@ def get_execution_role():
     response = iam_client.list_roles()
     roles = response['Roles']
     for role in roles:
-        if 'LabRole' in role['RoleName']: # CHANGE THIS
+        if 'Crisis_Detection' in role['RoleName']: # CHANGE THIS
             return role['Arn']
 
 def lambda_handler(event, context):
     role = get_execution_role()
     
-    bucket = 'crisis-detection-bucket-ronel'
+    bucket = 'crisis-detection'
     file = create_and_upload(bucket, event)
     step = incremental_train(bucket, role, file)
 
@@ -65,7 +65,7 @@ def create_and_upload(bucket, event):
     
 def incremental_train(bucket, role, file):
 
-    prefix = 'model'
+    prefix = 'model_incremental'
     region = boto3.Session().region_name
     client = boto3.client("sagemaker", region_name=region)
     

@@ -12,35 +12,33 @@ export const POST: RequestHandler = async ({ request }) => {
   const region = "us-east-1"; // Replace with your actual AWS region
 
   // Create an instance of the Lambda client
-//   const lambdaClient = new LambdaClient({
-//     region,
-//     credentials: {
-//         accessKeyId: AWS_KEY,
-//         secretAccessKey: AWS_SECRET,
-//       },
-//   });
+  const lambdaClient = new LambdaClient({
+    region,
+    credentials: {
+        accessKeyId: AWS_KEY,
+        secretAccessKey: AWS_SECRET,
+      },
+  });
 
-//   // No payload required for invoking the Lambda function
 
-//   // Define the input parameters for invoking the Lambda function
-//   const invokeParams = {
-//     FunctionName: "incremental-train", // Replace with your actual Lambda function name
-//     InvocationType: "RequestResponse",
-//   };
+  // Define the input parameters for invoking the Lambda function
+  const invokeParams = {
+    FunctionName: "incremental-train", // Replace with your actual Lambda function name
+    InvocationType: "RequestResponse",
+    Payload: JSON.stringify(cleanArray),
+  };
 
   try {
-//     // Invoke the Lambda function
-//     const response = await lambdaClient.send(new InvokeCommand(invokeParams));
+      // Invoke the Lambda function
+      const response = await lambdaClient.send(new InvokeCommand(invokeParams));
 
-//     // Parse and process the response from the Lambda function
-//     const responseData = JSON.parse(
-//       new TextDecoder().decode(response.Payload)
-//     );
+      // Parse and process the response from the Lambda function
+      const responseData = JSON.parse(
+        new TextDecoder().decode(response.Payload)
+      );
 
-//     // Return the processed response
-//     return json(responseData);
-        console.log(cleanArray);
-        return json(cleanArray);
+      // Return the processed response
+      return json(responseData);
     } catch (error) {
     console.error("Error invoking Lambda function:", error);
     return json(error)

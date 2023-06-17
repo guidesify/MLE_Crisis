@@ -10,7 +10,8 @@
     let workArray = [];
     
     async function alreadyLabelled() {
-        workArray = await supabase.from('labelled').select()
+        // must be submitted false
+        workArray = await supabase.from('labelled').select().eq('submitted', false)
         // console.log(workArray)
         // Need id and submitted
         workArray = workArray.data.map((item) => {
@@ -36,12 +37,25 @@
         })
         .then(response => response.json())
         .then(data => {
-            // body = data['body']
-            body = data
+            body = data['body']
             console.log('Success:', body);
             loading = false;
             if (body.includes('successfully')) {
                 success = true;
+                // Change Supabase submitted to true one shot by adding submitted: true to all items in workArray
+                const updateArray = workArray.map((item) => {
+                    return {
+                        id: item.id,
+                        submitted: true
+                    }
+                })
+                supabase.from('labelled').upsert(updateArray)
+                .then(res => {
+                    console.log("Response from upsert: ", res)
+                })
+
+                // Remove all items from workArray
+                workArray = []
             } else {
                 failure = true;
             }
@@ -72,7 +86,20 @@
     })
 </script>
 
+{#if success}
+  <Notification bind:clickHandler={clickHandler}>Training job successfully created, check back in awhile.</Notification>
+{/if}
+
+{#if failure}
+  <Notification red bind:clickHandler={clickHandler}>Something went wrong. Please contact admin.</Notification>
+{/if}
+
 {#if workArray.length > 0}
+{#if loading}
+<div class="flex items-center justify-center mt-16">
+    <Spinner /> Submitting and cleaning up data...
+</div>
+{:else}
 <!-- button for submitting work done to lambda function -->
 <div class="flex flex-col items-center justify-center mt-8 mx-auto w-full sm:w-3/4 sm:max-w-4xl">
     <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={() => submit()}>
@@ -99,6 +126,7 @@
       </tbody>
     </table>
 </div>
+{/if}
 {:else}
 <div class="flex flex-col items-center justify-center py-8 mx-auto mt-8 w-full sm:w-3/4 sm:max-w-4xl">
     <p class="text-gray-500 dark:text-gray-400">No tweets have been labelled yet.</p>

@@ -3,9 +3,7 @@ import logging
 import boto3
 logging.getLogger().setLevel(logging.INFO)
 
-# GIVE THE ROLE THE REQUIRED PERMISSIONS AND REMEMBER TO SET S3 AS TRIGGER
-# BEWARE OF RECURSIVE INVOCATIONS
-# CHANGE THE ROLE TOO BELOW IN THE get_execution_role() FUNCTION
+
 def lambda_handler(event, context):
     # TODO implement
     bucket = str(event['Records'][0]['s3']['bucket']['name'])
@@ -49,7 +47,7 @@ def lambda_handler(event, context):
             "VariantName": "AllTraffic",
             "ServerlessConfig": {
                 "MemorySizeInMB": 1024,
-                "MaxConcurrency": 10,
+                "MaxConcurrency": 1,
             }
         } 
         ]
@@ -70,5 +68,5 @@ def get_execution_role():
     response = iam_client.list_roles()
     roles = response['Roles']
     for role in roles:
-        if 'Crisis_Detection' in role['RoleName']: # CHANGE THIS
+        if 'Crisis_Detection' in role['RoleName']:
             return role['Arn']
