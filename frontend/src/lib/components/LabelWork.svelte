@@ -71,8 +71,8 @@
 
 <!-- Table to show toLabelArray -->
 {#if cleanedToLabelArray.length > 0 && session}
-<div class="flex flex-col items-center justify-center py-8 mx-auto mt-8 w-full sm:w-3/4 sm:max-w-4xl">
-<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+<div class="custom-overflow items-center justify-center py-8 mx-auto w-11/12 sm:w-3/4 sm:max-w-4xl">
+  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
   <thead>
     <tr>
       <th class="px-4 py-2">ID</th>
@@ -115,4 +115,3 @@
 </table>
 </div>
 {/if}
-

@@ -133,12 +133,13 @@
 			</button>
 		{/if}
 	</div>
+    <div class="custom-overflow w-11/12 sm:w-full sm:max-w-4xl">
 	<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
 		<thead>
 			<tr>
-				<th class="border-gray-300 border px-4 py-2">Endpoint</th>
-				<th class="border-gray-300 border px-4 py-2">Status</th>
-				<th class="border-gray-300 border px-4 py-2">Actions</th>
+				<th class="px-4 py-2">Endpoint</th>
+				<th class="px-4 py-2">Status</th>
+				<th class="px-4 py-2">Actions</th>
 			</tr> 
 		</thead>
 		<tbody>
@@ -180,6 +181,7 @@
 			{/if}
 		</tbody>
 	</table>
+    </div>
 
 	<!-- Log out button -->
 	<div class="flex justify-center mt-8">

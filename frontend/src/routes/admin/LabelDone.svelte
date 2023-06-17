@@ -106,7 +106,7 @@
         Submit for Incremental Training
     </button>
 </div>
-<div class="flex flex-col items-center justify-center py-8 mx-auto w-full sm:w-3/4 sm:max-w-4xl">
+<div class="custom-overflow items-center justify-center py-8 mx-auto w-11/12 sm:w-3/4 sm:max-w-4xl">
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
       <thead>
         <tr>
@@ -118,9 +118,9 @@
       <tbody>
         {#each workArray as item}
         <tr>
-            <td class="px-4 py-2">{item.id}</td>
-            <td class="px-4 py-2">{item.label ? "1" : "0"}</td>
-            <td class="px-4 py-2">{item.text}</td>
+            <td class="border px-4 py-2">{item.id}</td>
+            <td class="border px-4 py-2">{item.label ? "1" : "0"}</td>
+            <td class="border px-4 py-2">{item.text}</td>
         </tr>
         {/each}
       </tbody>

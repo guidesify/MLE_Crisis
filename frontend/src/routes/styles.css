@@ -106,3 +106,16 @@ button:focus:not(:focus-visible) {
 	width: 1px;
 	white-space: nowrap;
 }
+
+@media (max-width: 640px) {
+    .custom-overflow {
+      overflow-x: scroll;
+    }
+  }
+  
+@media (min-width: 640px) {
+.custom-overflow {
+	display: flex;
+	flex-direction: column;
+}
+}
