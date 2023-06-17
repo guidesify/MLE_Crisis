@@ -6,44 +6,50 @@ import time
 import uuid
 import tarfile
 import os
+from datetime import datetime
+
+
+### CHANGE bucket
+### CHANGE role
 
 def get_execution_role():
     iam_client = boto3.client('iam')
     response = iam_client.list_roles()
     roles = response['Roles']
     for role in roles:
-        if 'Crisis_Detection' in role['RoleName']: # CHANGE THIS
+        if 'LabRole' in role['RoleName']: # CHANGE THIS
             return role['Arn']
 
 def lambda_handler(event, context):
-    bucket = 'crisis-detection-2'
     role = get_execution_role()
-
-    file = create_and_upload(bucket)
-    step = incremental_train(event, role, file)
+    
+    bucket = 'crisis-detection-bucket-ronel'
+    file = create_and_upload(bucket, event)
+    step = incremental_train(bucket, role, file)
 
     return {
         'statusCode': 200,
         'body': json.dumps(step)
     }
 
-def create_and_upload(bucket):
+def create_and_upload(bucket, event):
     # retrieve new data from S3
     s3 = boto3.client('s3')
 
-    df = pd.read_csv('sample.csv') # CHANGE THIS
-    df = df[['target', 'text']]
 
-    # Write DataFrame to a CSV file in memory (StringIO)
-    csv_buffer = io.StringIO()
-    df.to_csv(csv_buffer, index=False)
-
-    # Encode the CSV content as bytes before uploading
-    incremental_content = csv_buffer.getvalue().encode('utf-8')
-
-    # Upload the encoded CSV content to S3
-    file = 'incremental/incremental.csv'
-    s3.put_object(Body=incremental_content, Bucket=bucket, Key=file)
+    suffix = datetime.now().strftime("%Y%m%d_%H%M%S")+'.csv'
+    file = 'incremental_train_data/batch_'+ suffix
+    
+    # parse event
+    target = [i['target'] for i in event]
+    text = [i['text'] for i in event]
+    
+    # create df
+    df = pd.DataFrame({'target':target,'text':text})
+    df_csv = df.to_csv(index=False)
+    
+    # Upload the file to S3
+    s3.put_object(Body=df_csv, Bucket=bucket, Key=file)
 
     tar_filename = '/tmp/sourcedir.tar.gz'
     with tarfile.open(tar_filename, 'w:gz') as tar:
@@ -56,7 +62,7 @@ def create_and_upload(bucket):
     s3.put_object(Body=tar_content, Bucket=bucket, Key='code_incremental/{}'.format(os.path.basename(tar_filename)))
 
     return file
-
+    
 def incremental_train(bucket, role, file):
 
     prefix = 'model'
@@ -93,7 +99,7 @@ def incremental_train(bucket, role, file):
             'sagemaker_job_name': job_name,
             'sagemaker_program': 'incremental.py',
             'sagemaker_region': 'us-east-1',
-            'sagemaker_submit_directory': 's3://{}/code/sourcedir.tar.gz'.format(bucket),
+            'sagemaker_submit_directory': 's3://{}/code_incremental/sourcedir.tar.gz'.format(bucket),
         },
         'StoppingCondition': {
             'MaxRuntimeInSeconds': 86400
@@ -104,7 +110,7 @@ def incremental_train(bucket, role, file):
                 'DataSource': {
                     'S3DataSource': {
                         'S3DataType': 'S3Prefix',
-                        'S3Uri': 's3://{}/{}'.format(bucket, key),
+                        'S3Uri': 's3://{}/{}'.format(bucket, file),
                         'S3DataDistributionType': 'FullyReplicated'
                     }
                 },
@@ -120,7 +126,6 @@ def incremental_train(bucket, role, file):
     except Exception as e:
         return str(e)
 
-    return {
-        'Incremental training triggered successfully'
-    }
+    return 'Incremental training triggered successfully'
+    
 

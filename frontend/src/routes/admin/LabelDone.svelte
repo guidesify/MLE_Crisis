@@ -2,8 +2,12 @@
     import { supabase } from "$lib/supabaseClient";
     import { onMount } from 'svelte';
     import Spinner from '$lib/components/Spinner.svelte';
+    import Notification from "$lib/components/Notification.svelte";
+
+    let body;
+    let [success, failure, loading, genTimeout] = [false, false, false, null];
+    let clickHandler;
     let workArray = [];
-    let loading;
     
     async function alreadyLabelled() {
         workArray = await supabase.from('labelled').select()
@@ -20,6 +24,48 @@
         // console.log("Work array: ", workArray)
       }
 
+    async function submit() {
+        loading = true;
+        
+        const response = await fetch('/api/trainIncremental', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({workArray})
+        })
+        .then(response => response.json())
+        .then(data => {
+            // body = data['body']
+            body = data
+            console.log('Success:', body);
+            loading = false;
+            if (body.includes('successfully')) {
+                success = true;
+            } else {
+                failure = true;
+            }
+            loading = false;
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            failure = true;
+            loading = false;
+        })
+        .finally(() => {
+            let alert_type = success ? 'alert' : 'alert2'
+            if (document.getElementById(alert_type)) {
+            document.getElementById(alert_type).classList.remove('transition-opacity', 'duration-300', 'ease-out', 'opacity-0', 'hidden')
+            }
+            genTimeout = setTimeout(() => {
+            let dur = clickHandler(alert_type, alert_type)()
+            setTimeout(() => {
+                [loading, success, failure] = [false, false, false]
+            }, dur)
+            }, 5000)
+        })
+    }
+
     onMount(async () => {
         await alreadyLabelled();
         console.log("Work array: ", workArray)
@@ -27,7 +73,13 @@
 </script>
 
 {#if workArray.length > 0}
-<div class="flex flex-col items-center justify-center py-8 mx-auto mt-8 w-full sm:w-3/4 sm:max-w-4xl">
+<!-- button for submitting work done to lambda function -->
+<div class="flex flex-col items-center justify-center mt-8 mx-auto w-full sm:w-3/4 sm:max-w-4xl">
+    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={() => submit()}>
+        Submit for Incremental Training
+    </button>
+</div>
+<div class="flex flex-col items-center justify-center py-8 mx-auto w-full sm:w-3/4 sm:max-w-4xl">
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
       <thead>
         <tr>

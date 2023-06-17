@@ -13,21 +13,25 @@ import joblib
 import tarfile
 import json
 import boto3
+import io
 
-def get_latest_folder(bucket_name, prefix):
+
+### CHANGE bucket
+def get_latest_folder(bucket, prefix):
     s3 = boto3.client('s3')
     
     # List objects in the bucket with the specified prefix
-    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix, Delimiter='/')
+    response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix, Delimiter='/')
     
     # Extract the folders from the response
     folders = [folder['Prefix'] for folder in response.get('CommonPrefixes', [])]
     
     qualified_folders = []
+    print(folders)
 
     for folder in folders:
         output_folder = folder + 'output/'
-        response = s3.list_objects_v2(Bucket=bucket_name, Prefix=output_folder)
+        response = s3.list_objects_v2(Bucket=bucket, Prefix=output_folder)
 
         if 'Contents' in response:
             qualified_folders.append(folder)
@@ -46,14 +50,14 @@ def main():
     parser.add_argument('--model-dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
     parser.add_argument("--train", type=str, default=os.environ.get("SM_CHANNEL_TRAIN"))
 
-    bucket_name = 'crisis-detection-2'
-    prefix = 'model'
+    bucket = 'crisis-detection-bucket-ronel'
+    prefix = 'model/'
     args, _ = parser.parse_known_args()
     model_dir = args.model_dir
     sm_model_dir = args.sm_model_dir
     training_dir = args.train
     train_data = glob.glob(os.path.join(training_dir, "*.csv"))[0]
-    old_model_dir = get_latest_folder(bucket_name, prefix)
+    old_model_dir = get_latest_folder(bucket, prefix)
     
     print(train_data)
     print(old_model_dir)
@@ -61,7 +65,7 @@ def main():
     # Extract the model file from the tar.gz archive
     s3 = boto3.client('s3')
     local_file_path = 'model.tar.gz'
-    s3.download_file(bucket_name, old_model_dir+'output/'+local_file_path, local_file_path)
+    s3.download_file(bucket, old_model_dir+'output/'+local_file_path, local_file_path)
     with tarfile.open(local_file_path, 'r:gz') as tar:
         tar.extractall('.')
         
@@ -72,6 +76,7 @@ def main():
     df = load_data(train_data)
     X = df.drop(['id', 'target', 'keyword','location'], axis=1, errors='ignore')
     y = df['target']
+
     
     # Check model predictive score on new data first
     y_pred = model.predict(X)
